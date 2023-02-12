@@ -33,5 +33,7 @@ for i in range(len(results)):
     print(results[i], end="\n\n")
     axis[i].bar(["heads", "tails"], [n_heads[i], (len(results[i]) - n_heads[i])], color=colors[i])
     axis[i].set_title(str(probs[i]))
+    
+plt.ylabel('Probability')
 
 plt.show()
