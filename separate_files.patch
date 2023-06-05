@@ -1,0 +1,147 @@
+From 59eb462f335966f526a7e07c252a288359f69096 Mon Sep 17 00:00:00 2001
+From: Shahla Daneshmehr <shahla@ku.edu>
+Date: Sun, 12 Feb 2023 14:21:03 -0600
+Subject: [PATCH] separate experiment and analysis
+
+---
+ Project1.py => Analysis.py | 36 ++++++++++++++++--------------------
+ Config.py                  |  2 ++
+ Experiment.py              | 26 ++++++++++++++++++++++++++
+ README.md                  | 19 +++++++++++++++----
+ 4 files changed, 59 insertions(+), 24 deletions(-)
+ rename Project1.py => Analysis.py (52%)
+ create mode 100644 Config.py
+ create mode 100644 Experiment.py
+
+diff --git a/Project1.py b/Analysis.py
+similarity index 52%
+rename from Project1.py
+rename to Analysis.py
+index 9f33bcd..c295611 100644
+--- a/Project1.py
++++ b/Analysis.py
+@@ -1,29 +1,25 @@
+-#! /usr/bin/env python
++#!/usr/bin/env python
+ 
+ # imports of external packages to use in our code
+ import sys
+-import numpy as np
+-import matplotlib.pyplot as plt
+-
+-# import our Random class from python/Random.py file
+ sys.path.append(".")
+-from Random import Random
+-random = Random()
+ 
+-def run_experiment(prob):
+-    return random.Categorical(prob)
++# Get our probablity config for our experiment
++from Config import probs
++
++# imports of external packages to use in our code
++import matplotlib.pyplot as plt
++
++result_file = open("results.txt", mode="r")
+ 
+ results = []
+ n_heads = []
+-probs = [0.5, 0.75]
+-for prob in probs:
+-    r = []
+-    n = 0
+-    for run in range(100):
+-        r.append(run_experiment(prob))
+-        n += r[-1]
+-    results.append(r)
+-    n_heads.append(n)
++
++for line in result_file.readlines():
++    line = line.rstrip().split(" ")
++    r, heads = line[:-1], line[-1]
++    results.append([float(result) for result in r])
++    n_heads.append(float(heads))
+ 
+ colors = ["red", "green"]
+ figure, axis = plt.subplots(1,2)
+@@ -34,6 +30,6 @@ for i in range(len(results)):
+     axis[i].bar(["heads", "tails"], [n_heads[i], (len(results[i]) - n_heads[i])], color=colors[i])
+     axis[i].set_title(str(probs[i]))
+     
+-plt.ylabel('Probability')
++plt.ylabel('number of coin flips')
+ 
+-plt.show()
+\ No newline at end of file
++plt.show()
+diff --git a/Config.py b/Config.py
+new file mode 100644
+index 0000000..c6f45d7
+--- /dev/null
++++ b/Config.py
+@@ -0,0 +1,2 @@
++# Set up our probabilities for our experiments and analysis
++probs = [0.5, 0.75]
+diff --git a/Experiment.py b/Experiment.py
+new file mode 100644
+index 0000000..a9e2d19
+--- /dev/null
++++ b/Experiment.py
+@@ -0,0 +1,26 @@
++#!/usr/bin/env python
++
++# imports of external packages to use in our code
++import sys
++sys.path.append(".")
++
++# Get our probablity config for our experiment
++from Config import probs
++
++# import our Random class from python/Random.py file
++from Random import Random
++random = Random()
++
++# set up our results file for writing
++result_file = open("results.txt", mode="w")
++
++def run_experiment(prob):
++    return random.Categorical(prob)
++
++for prob in probs:
++    r = []
++    n_heads = 0
++    for run in range(100):
++        r.append(run_experiment(prob))
++        n_heads += r[-1]
++    result_file.write(" ".join(list(map(str, r))) + " " + str(n_heads) + "\n")
+diff --git a/README.md b/README.md
+index 0243a81..897459f 100644
+--- a/README.md
++++ b/README.md
+@@ -1,7 +1,18 @@
+ # Project 1
+-This experiment measures coin flips according to a categorical distribution and graphs the results.
++This experiment measures coin flips according to a categorical distribution and graphs the results.  The p-values (probabilities) for getting "heads" in the experiment are stored in `Config.py`.
+ 
+-To run it, do the following:
++To run it, first perform the experiment:
++```
++python Experiment.py
++```
++
++The script will create a file named `results.txt` that will look something like this:
++```
++1 0 0 0 0 0 1 0 1 1 0 1 1 0 0 1 1 0 1 0 1 1 1 1 1 1 1 0 0 1 0 1 1 1 0 0 1 0 0 1 0 1 1 1 0 0 1 1 0 1 1 0 1 0 0 1 0 1 0 1 1 0 1 0 0 1 0 0 1 1 0 0 1 0 0 1 1 1 1 0 1 0 0 1 1 1 1 1 0 0 0 1 0 1 1 0 1 1 1 0 55
++1 1 1 0 0 1 1 1 0 1 0 1 0 1 1 0 1 1 1 1 1 1 1 1 1 0 1 1 1 1 0 0 0 1 1 1 1 1 0 0 1 0 0 1 1 0 1 1 1 0 1 0 1 0 1 0 1 1 1 1 0 1 0 1 1 1 1 0 1 1 0 1 0 1 0 1 1 1 0 1 1 1 1 1 0 0 1 1 0 1 0 1 1 1 0 1 1 1 1 1 69
++```
++
++To perform analysis on the data, do this:
++```
++python Analysis.py
+ ```
+-python Project1.py
+-```
+\ No newline at end of file
+-- 
+2.37.1 (Apple Git-137.1)
+
